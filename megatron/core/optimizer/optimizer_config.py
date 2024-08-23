@@ -84,6 +84,20 @@ class OptimizerConfig:
     adam_eps: float = 1e-08
     """Term added to the denominator to improve numerical stability in Adam optimizer."""
 
+    # LAMB
+    lamb_beta1: float = 0.9
+    """First coefficient for computing running averages of gradient and its square in LAMB
+    optimizer.
+    """
+
+    lamb_beta2: float = 0.999
+    """Second coefficient for computing running averages of gradient and its square in LAMB
+    optimizer.
+    """
+
+    lamb_eps: float = 1e-08
+    """Term added to the denominator to improve numerical stability in LAMB optimizer."""
+
     # SGD.
     sgd_momentum: float = 0.9
     """Momentum factor for SGD optimizer."""

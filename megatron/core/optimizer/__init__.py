@@ -10,6 +10,7 @@ try:
 except ImportError:
     try:
         from apex.optimizers import FusedAdam as Adam
+        from apex.optimizers import FusedLAMB as LAMB
         from apex.optimizers import FusedSGD as SGD
     except ImportError:
         import warnings
@@ -17,6 +18,13 @@ except ImportError:
         warnings.warn(
             f'Transformer Engine and Apex are not installed. Falling back to Torch optimizers.'
         )
+
+        try:
+            from torch_optimizer import LAMB
+        except:
+            warnings.warn(
+                f'torch_optimizer must be installed for LAMB optimizer.'
+            )
 
         ## apex's FusedAdam is a drop-in replacement for torch's AdamW
         ## see https://github.com/NVIDIA/apex/blob/7b73b12361068a10b0f44844534613f252a5ea75/apex/optimizers/fused_adam.py#L16
@@ -197,6 +205,22 @@ def _get_megatron_optimizer_based_on_param_groups(
             weight_decay=config.weight_decay,
             betas=(config.adam_beta1, config.adam_beta2),
             eps=config.adam_eps,
+        )
+
+        def init_state_fn(opt):
+            for group in opt.param_groups:
+                for p in group['params']:
+                    if len(opt.state[p]) == 0:
+                        opt.state[p]['exp_avg'] = torch.zeros_like(p.data)
+                        opt.state[p]['exp_avg_sq'] = torch.zeros_like(p.data)
+
+    elif config.optimizer == 'lamb':
+        optimizer = LAMB(
+            param_groups,
+            lr=config.lr,
+            weight_decay=config.weight_decay,
+            betas=(config.lamb_beta1, config.lamb_beta2),
+            eps=config.lamb_eps,
         )
 
         def init_state_fn(opt):
